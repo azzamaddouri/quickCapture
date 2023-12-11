@@ -1,0 +1,7 @@
+{
+  "name": "quickCapture",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

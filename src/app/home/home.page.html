@@ -14,12 +14,12 @@ html
 			</ion-row>
 			<ion-row>
 				<ion-col>
-					<ion-button expand="block" (click)="recordVideo()"> Record Video </ion-button>
+					<ion-button expand="block" (click)="chooseVideoFromGallery()"> Record Video </ion-button>
 				</ion-col>
 			</ion-row>
 		</ion-grid>
 		<ion-content>
-			<p [innerText]="'Duration is: ' + duration"></p>
+			<p [innerText]="'Duration : ' + duration"></p>
 		  </ion-content>
 	</ion-content>
 </ion-app>

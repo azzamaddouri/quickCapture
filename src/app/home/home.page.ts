@@ -55,12 +55,12 @@ export class HomePage {
   }
   async uploadVideo(video:any) {
     try {
-       console.log(video.files[0].data);
-        const base64String = 'data:video/*;base64,' + video.files[0].data;
+       console.log(video.files[0]);
+        const base64String = 'data:video/mp4;base64,' + video.files[0].data;
         console.log(base64String);
         const blob = this.base64toBlob(base64String);
         console.log(blob);
-      const filePath = `videos/${video.files[0].name}.${video.files[0].mimeType}`;
+      const filePath = `videos/${video.files[0].name}.${video.files[0].mimeType.substring("video/".length)}`;
       const fileRef = ref(this.storage, filePath);
       const metadata = {
         contentType: blob.type,

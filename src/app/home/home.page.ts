@@ -1,8 +1,9 @@
 import { Component } from '@angular/core';
 import { FilePicker } from '@capawesome/capacitor-file-picker';
-import { Chooser } from "@awesome-cordova-plugins/chooser/ngx";
 import { AlertController, LoadingController, ToastController } from '@ionic/angular';
 import { Storage, getDownloadURL, ref, uploadBytesResumable } from '@angular/fire/storage';
+import { CaptureError, CaptureVideoOptions, MediaCapture, MediaFile } from '@awesome-cordova-plugins/media-capture/ngx';
+import { Filesystem } from '@capacitor/filesystem';
 
 
 @Component({
@@ -11,36 +12,71 @@ import { Storage, getDownloadURL, ref, uploadBytesResumable } from '@angular/fir
   styleUrls: ['home.page.scss'],
 })
 export class HomePage {
-  duration: number = 0;
   uploadProgress: number = 0;
   uploadLoader!: HTMLIonLoadingElement;
-  constructor(private alertController: AlertController,
+  constructor(
+    private alertController: AlertController,
     private storage: Storage,
     private loadingController: LoadingController,
     private toastController: ToastController,
-    private chooser: Chooser) { }
-  
+    private mediaCapture: MediaCapture) { }
+
   async chooseVideoFromGallery() {
-      await FilePicker.pickFiles({
-        types: ['video/*'],
-        multiple: false,
-        readData: true
-      }).then((video)=>{
-        const duration = video.files[0].duration;
-        this.duration = duration!;
-        if (duration && duration! > 90 ) {
-          this.presentErrorAlert('The selected video\'s duration should not be greater than 1mins30s !');
-        } else{
-          
-          this.uploadVideo(video);
-        }
-      }).catch((e)=>{
-        this.presentErrorAlert('Please choose a video with a duration of 1mins30s or less ');
-        console.log(e);
-      });
+    await FilePicker.pickFiles({
+      types: ['video/*'],
+      multiple: false,
+      readData: true
+    }).then((video) => {
+      const duration = video.files[0].duration;
+      if (duration && duration! > 90) {
+        this.presentErrorAlert('The selected video\'s duration should not be greater than 1mins30s !');
+      } else {
+        console.log(video.files[0]);
+        const base64String = 'data:video/mp4;base64,' + video.files[0].data;
+        console.log(base64String);
+        const blob = this.base64toBlob(base64String);
+        console.log(blob);
+        const filePath = `videos/${video.files[0].name}.${video.files[0].mimeType.substring("video/".length)}`;
+        this.uploadVideo(blob, filePath);
+      }
+    }).catch((e) => {
+      this.presentErrorAlert('Please choose a video with a duration of 1mins30s or less ');
+      console.log(e);
+    });
   }
-  recordVideo() {
-    throw new Error('Method not implemented.');
+  async recordVideo() {
+    try {
+      const options: CaptureVideoOptions = { limit: 1/* , duration: 90 */ };
+      const data: MediaFile[] | CaptureError = await this.mediaCapture.captureVideo(options);
+      if (Array.isArray(data)) {
+        const video: MediaFile = data[0];
+        const duration = video.getFormatData((data) => { return data.duration });
+        if (duration! > 90) {
+          this.presentErrorAlert('The captured video\'s duration should not be greater than 1mins30s !');
+        } else {
+          console.log('Captured video name:', video.name);
+          console.log('Captured video fullPath:', video.fullPath);
+          console.log('Captured video Type:', video.type);
+          console.log('Captured video Size:', video.size);
+          console.log('Captured video lastModifiedDate:', video.lastModifiedDate);
+          const contents = await Filesystem.readFile({
+            path: video.fullPath,
+          });
+          console.log('data:', contents.data.toString());
+          const base64String = 'data:video/mp4;base64,' + contents.data;
+          console.log(base64String);
+          const blob = this.base64toBlob(base64String);
+          console.log(blob);
+          const filePath = `videos/${video.name}.${video.type.substring("video/".length)}`;
+          this.uploadVideo(blob, filePath);
+        }
+      } else {
+        const error: CaptureError = data;
+        console.error('Error capturing video:', error);
+      }
+    } catch (e) {
+      console.error('Error capturing or processing video:', e);
+    }
   }
 
   base64toBlob(dataURI: any) {
@@ -53,32 +89,25 @@ export class HomePage {
     }
     return new Blob([arrayBuffer], { type: mimeString });
   }
-  async uploadVideo(video:any) {
+  async uploadVideo(blob: any, filePath: any) {
     try {
-       console.log(video.files[0]);
-        const base64String = 'data:video/mp4;base64,' + video.files[0].data;
-        console.log(base64String);
-        const blob = this.base64toBlob(base64String);
-        console.log(blob);
-      const filePath = `videos/${video.files[0].name}.${video.files[0].mimeType.substring("video/".length)}`;
       const fileRef = ref(this.storage, filePath);
       const metadata = {
         contentType: blob.type,
       };
       const uploadTask = uploadBytesResumable(fileRef, blob, metadata);
       await this.presentLoading();
-       /* const startTime = new Date().getTime();
-       let prevTime = startTime; */
+      const startTime = new Date().getTime();
+      let prevTime = startTime;
       uploadTask.on(
         'state_changed',
         (snapshot) => {
-          // Upload progress in terms of percentage
+          /* // Upload progress in terms of percentage
           this.uploadProgress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          this.uploadLoader.message = `Uploading: ${Math.round(this.uploadProgress)}%`;
-          
-         /*
-         // Upload progress in terms of time remaining
-         const currentTime = new Date().getTime();
+          this.uploadLoader.message = `Uploading: ${Math.round(this.uploadProgress)}%`; */
+
+          // Upload progress in terms of time remaining
+          const currentTime = new Date().getTime();
           const elapsedTime = (currentTime - startTime) / 1000;
           const bytesTransferred = snapshot.bytesTransferred;
           const totalBytes = snapshot.totalBytes;
@@ -88,7 +117,7 @@ export class HomePage {
             const timeRemaining = bytesRemaining / bytesPerSecond;
             this.uploadLoader.message = `Dismissing after ${Math.round(timeRemaining)} seconds...`;
           }
-          prevTime = currentTime; */
+          prevTime = currentTime;
         },
         (error) => {
           console.error('Upload error:', error);
@@ -105,10 +134,10 @@ export class HomePage {
       throw e;
     }
   }
-  async presentErrorAlert(message:string) {
+  async presentErrorAlert(message: string) {
     const alert = await this.alertController.create({
       header: 'Error',
-      message:message,
+      message: message,
       buttons: ['OK']
     });
 
@@ -117,7 +146,7 @@ export class HomePage {
   async presentLoading() {
     this.uploadLoader = await this.loadingController.create({
       backdropDismiss: false,
-      spinner:'circles'
+      /* spinner:'circles' */
     });
 
     await this.uploadLoader.present();
@@ -137,6 +166,4 @@ export class HomePage {
     });
     await toast.present();
   }
- 
- 
 }

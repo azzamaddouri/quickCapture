@@ -10,17 +10,17 @@ import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideStorage, getStorage } from '@angular/fire/storage';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { environment } from '../environments/environment.prod';
-
+import { MediaCapture } from "@awesome-cordova-plugins/media-capture/ngx";
 @NgModule({
   declarations: [AppComponent],
   imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule,
     provideFirebaseApp(() => {
       const firebaseApp = initializeApp(environment.firebaseConfig);
       return firebaseApp;
-    }), 
-    provideStorage(() => getStorage()), 
+    }),
+    provideStorage(() => getStorage()),
     provideFirestore(() => getFirestore())],
-  providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],
+  providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }, MediaCapture],
   bootstrap: [AppComponent],
 })
 export class AppModule { }

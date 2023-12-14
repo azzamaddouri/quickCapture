@@ -36,7 +36,7 @@ export class HomePage {
         console.log(base64String);
         const blob = this.base64toBlob(base64String);
         console.log(blob);
-        const filePath = `videos/${video.files[0].name}.${video.files[0].mimeType.substring("video/".length)}`;
+        const filePath = `videos/${video.files[0].name.replace(".mp4", "")}.${video.files[0].mimeType.substring("video/".length)}`;
         this.uploadVideo(blob, filePath);
       }
     }).catch((e) => {
@@ -67,7 +67,7 @@ export class HomePage {
           console.log(base64String);
           const blob = this.base64toBlob(base64String);
           console.log(blob);
-          const filePath = `videos/${video.name}.${video.type.substring("video/".length)}`;
+          const filePath = `videos/${video.name.replace(".mp4", "")}.${video.type.substring("video/".length)}`;
           this.uploadVideo(blob, filePath);
         }
       } else {

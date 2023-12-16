@@ -1,12 +1,12 @@
 export const environment = {
   production: true,
   firebaseConfig : {
-    apiKey: "AIzaSyBcXAdTAYVRXJIFDkklAthihXwVTcB9Rxs",
-    authDomain: "fir-media-hub.firebaseapp.com",
-    projectId: "fir-media-hub",
-    storageBucket: "fir-media-hub.appspot.com",
-    messagingSenderId: "357292092788",
-    appId: "1:357292092788:web:7a0fae8e9da0a393b85021",
-    measurementId: "G-HM1EEV8QRB"
+    apiKey: "AIzaSyAcPGgs77hnKDnnVNxzTmmQRksI1FOCXc8",
+    authDomain: "fir-media-hub-f275f.firebaseapp.com",
+    projectId: "fir-media-hub-f275f",
+    storageBucket: "fir-media-hub-f275f.appspot.com",
+    messagingSenderId: "262282868335",
+    appId: "1:262282868335:web:8579c3574dbb7072c5bf9a",
+    measurementId: "G-54YQFL3VQG"
   }
 };

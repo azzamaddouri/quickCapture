@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  firebaseConfig : {
+  firebaseConfig: {
     apiKey: "AIzaSyAcPGgs77hnKDnnVNxzTmmQRksI1FOCXc8",
     authDomain: "fir-media-hub-f275f.firebaseapp.com",
     projectId: "fir-media-hub-f275f",
